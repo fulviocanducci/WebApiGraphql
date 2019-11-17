@@ -34,10 +34,7 @@ namespace WebAppiGraphql.Controllers
                     options.OperationName = query.OperationName;
                     options.Inputs = inputs;
                 });
-            if (result.Errors?.Count > 0)
-            {
-                return BadRequest();
-            }
+            if (result.Errors?.Count > 0) return BadRequest();           
             return Ok(result);
         }
     }
