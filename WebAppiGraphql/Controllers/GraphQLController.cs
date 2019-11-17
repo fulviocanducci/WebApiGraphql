@@ -35,7 +35,7 @@ namespace WebAppiGraphql.Controllers
                     options.Inputs = inputs;
                 });
             if (result.Errors?.Count > 0) return BadRequest();           
-            return Ok(result);
+            return Ok(result.Data);
         }
     }
 }
