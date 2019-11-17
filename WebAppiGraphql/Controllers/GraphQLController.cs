@@ -23,7 +23,7 @@ namespace WebAppiGraphql.Controllers
             Inputs inputs = query.Variables.ToInputs();
             Schema schema = new Schema
             {
-                Query = new PeopleQuery(DataContext)
+                Query = new Queries(DataContext)
             };
             DocumentExecuter documentExecuter = new DocumentExecuter();
             ExecutionResult result = await

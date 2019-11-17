@@ -19,10 +19,10 @@ namespace WebAppiGraphql.GraphQL
         }
     }
 
-    public class PeopleQuery : ObjectGraphType
+    public class Queries : ObjectGraphType
     {
         public DataContext DataContext { get; }
-        public PeopleQuery(DataContext dataContext)
+        public Queries(DataContext dataContext)
         {
             DataContext = dataContext;
             ConfigurationQuery();

@@ -42,7 +42,7 @@ namespace WebAppiGraphql
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-            });
+            });            
         }
     }
 }
