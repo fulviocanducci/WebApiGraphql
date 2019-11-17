@@ -3,39 +3,42 @@ using GraphQL.Types;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using WebAppiGraphql.GraphQL;
-using WebAppiGraphql.Models;
 using WebAppiGraphql.Services;
 
 namespace WebAppiGraphql.Controllers
 {
-    [Route("/graphql")]
-    [ApiController]
-    public class GraphQLController : ControllerBase
+  [Route("/graphql")]
+  [ApiController]
+  public class GraphQLController : ControllerBase
+  {
+    public DataContext DataContext { get; }
+    public GraphQLController(DataContext dataContext)
     {
-        public DataContext DataContext { get; }
-        public GraphQLController(DataContext dataContext)
-        {
-            DataContext = dataContext;
-        }
-
-        public async Task<IActionResult> Post([FromBody] GraphQLQuery query)
-        {
-            Inputs inputs = query.Variables.ToInputs();
-            Schema schema = new Schema
-            {
-                Query = new Queries(DataContext)
-            };
-            DocumentExecuter documentExecuter = new DocumentExecuter();
-            ExecutionResult result = await
-                documentExecuter.ExecuteAsync(options =>
-                {                    
-                    options.Schema = schema;
-                    options.Query = query.Query;
-                    options.OperationName = query.OperationName;
-                    options.Inputs = inputs;
-                });
-            if (result.Errors?.Count > 0) return BadRequest();           
-            return Ok(result.Data);
-        }
+      DataContext = dataContext;
     }
+
+    public async Task<IActionResult> Post([FromBody] GraphQLQuery query)
+    {
+      Inputs inputs = query.Variables.ToInputs();
+      ExecutionResult result = null;
+      using (Schema schema = new Schema())
+      {
+        schema.Query = new Queries(DataContext);
+        void options(ExecutionOptions x)
+        {
+          x.Schema = schema;
+          x.Query = query.Query;
+          x.OperationName = query.OperationName;
+          x.Inputs = inputs;
+        }
+        DocumentExecuter documentExecuter = new DocumentExecuter();
+        result = await documentExecuter.ExecuteAsync(options);
+        if (result?.Errors?.Count > 0)
+        {
+          return BadRequest(result.Errors);
+        }
+      }
+      return Ok(result?.Data);
+    }
+  }
 }

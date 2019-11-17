@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
-namespace WebAppiGraphql.Models
+namespace WebAppiGraphql.GraphQL
 {
     public class GraphQLQuery
     {

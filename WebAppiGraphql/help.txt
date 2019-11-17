@@ -1,0 +1,4 @@
+﻿//https://developer.okta.com/blog/2019/04/16/graphql-api-with-aspnetcore
+//https://imasters.com.br/dotnet/construindo-uma-api-graphql-com-asp-net-core-e-entity-framework-core
+//https://graphql-dotnet.github.io/docs/getting-started/schema-types/ types
+//https://ozh.github.io/ascii-tables/
