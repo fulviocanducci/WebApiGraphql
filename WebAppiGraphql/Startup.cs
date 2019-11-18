@@ -20,6 +20,7 @@ namespace WebAppiGraphql
 
     public void ConfigureServices(IServiceCollection services)
     {
+      services.AddCors();
       services.AddDbContext<DataContext>(x =>
       {
         x.UseSqlite("Data Source = base.db");
@@ -32,6 +33,13 @@ namespace WebAppiGraphql
       {
         app.UseDeveloperExceptionPage();
       }
+
+      app.UseCors(x =>
+      {
+        x.AllowAnyMethod();
+        x.AllowAnyHeader();
+        x.AllowAnyOrigin();
+      });
 
       app.UseGraphiQl("/graphql");
 

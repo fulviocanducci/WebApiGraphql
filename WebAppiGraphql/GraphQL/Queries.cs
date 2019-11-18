@@ -15,6 +15,34 @@ namespace WebAppiGraphql.GraphQL
       DataContext = dataContext;
       ConfigurationPeopleTypeToQuery();
       ConfigurationPhoneTypeToQuery();
+      ConfigurationPeopleAndPhoneToQuery();
+    }
+
+    private void ConfigurationPeopleAndPhoneToQuery()
+    {
+      //{"query":"{datas: peopleandphone(peopleId:1, phoneId:1) {people{id,name,created,updated,active} phone{id,peopleId,ddd,number}}}"}
+      Field<PeopleAndPhoneType>("peopleandphone",
+        arguments: new QueryArguments(
+          new QueryArgument<IdGraphType> { Name = "peopleId", DefaultValue = 0 },
+          new QueryArgument<IdGraphType> { Name = "phoneId", DefaultValue = 0 }
+          ),
+        resolve: context =>
+        {
+          int peopleId = context.GetArgument<int>("peopleId");
+          int phoneId = context.GetArgument<int>("phoneId");
+          People people = DataContext.People.Find(peopleId);
+          Phone phone = DataContext.Phone.Find(phoneId);
+          return new { people, phone };
+        });
+
+      //{"query":"{datas: peopleandphoneoflist {peoples{id,name,created,updated,active} phones{id,peopleId,ddd,number}}}"}
+      Field<PeopleAndPhoneListType>("peopleandphoneoflist",
+        resolve: context =>
+        {
+          IQueryable<People> peoples = DataContext.People.AsQueryable();
+          IQueryable<Phone> phones = DataContext.Phone.AsQueryable();
+          return new { peoples, phones };
+        });
     }
 
     private void ConfigurationPhoneTypeToQuery()
