@@ -19,11 +19,12 @@ namespace WebAppiGraphql.GraphQL
 
     private void ConfigurationPhoneTypeToQuery()
     {
+      //{"query":"{phone(id:1,load:true) {id, peopleId, ddd, number, people {name,active}}}"}
       Field<PhoneType>("phone",
           arguments: new QueryArguments(
                   new QueryArgument<IdGraphType> { Name = "id" },
                   new QueryArgument<BooleanGraphType> { Name = "load", DefaultValue = false }
-                  ),          
+                  ),
           resolve: context =>
           {
             int id = context.GetArgument<int>("id");
@@ -35,6 +36,21 @@ namespace WebAppiGraphql.GraphQL
             }
             return query.FirstOrDefault(x => x.Id == id);
           });
+      //{"query":"{phones(load:true){id,peopleId,ddd,number,people{name, active}}}"}
+      Field<ListGraphType<PhoneType>>("phones",
+        arguments: new QueryArguments(
+                new QueryArgument<BooleanGraphType> { Name = "load", DefaultValue = false }
+                ),
+        resolve: context =>
+        {
+          bool load = context.GetArgument<bool>("load");
+          IQueryable<Phone> query = DataContext.Phone.AsNoTracking();
+          if (load)
+          {
+            query = query.Include(x => x.People);
+          }
+          return query;
+        });
     }
 
     private void ConfigurationPeopleTypeToQuery()
@@ -57,20 +73,33 @@ namespace WebAppiGraphql.GraphQL
             return query.FirstOrDefault(x => x.Id == id);
           });
 
-      //{"query":"{people_filter_name(name: \"Name 2\") {name, created,id}}"}
+      //{"query":"{people_filter_name(name:\"Name\",load:true){name,created,id,phones{ddd,number}}}"}
       Field<ListGraphType<PeopleType>>("people_filter_name",
-          arguments: new QueryArguments(new QueryArgument<StringGraphType> { Name = "name" }),
+          arguments: new QueryArguments(
+            new QueryArgument<StringGraphType> { Name = "name" },
+            new QueryArgument<BooleanGraphType> { Name = "load" }
+            ),
           resolve: context =>
           {
             var name = context.GetArgument<string>("name");
-            return DataContext.People.Where(x => x.Name.Contains(name));
+            bool load = context.GetArgument<bool>("load");
+            IQueryable<People> peoples = DataContext.People.Where(x => x.Name.Contains(name));
+            return load
+              ? peoples.Include(x => x.Phones).AsQueryable()
+              : peoples;
           });
 
-      //{"query":"{peoples {name, created,id}}"}
+      //{"query":"{peoples(load:true) {id,name,created,updated,active,phones{peopleId,ddd,number}}}"}
       Field<ListGraphType<PeopleType>>("peoples",
+          arguments: new QueryArguments(
+            new QueryArgument<BooleanGraphType> { Name = "load"}
+            ),
           resolve: context =>
           {
-            return DataContext.People;
+            bool load = context.GetArgument<bool>("load");
+            return load
+              ? DataContext.People.Include(x => x.Phones).AsQueryable()
+              : DataContext.People;
           });
     }
   }
