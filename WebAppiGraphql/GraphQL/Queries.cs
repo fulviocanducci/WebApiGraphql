@@ -29,13 +29,14 @@ namespace WebAppiGraphql.GraphQL
           {
             int id = context.GetArgument<int>("id");
             bool load = context.GetArgument<bool>("load");
-            IQueryable<Phone> query = DataContext.Phone.AsNoTracking();
-            if (load)
-            {
-              query = query.Include(x => x.People);
-            }
-            return query.FirstOrDefault(x => x.Id == id);
+            IQueryable<Phone> query = DataContext.Phone
+              .Where(x => x.Id == id)
+              .AsNoTracking();
+            return load
+              ? query.Include(x => x.People).FirstOrDefault()
+              : query.FirstOrDefault();
           });
+
       //{"query":"{phones(load:true){id,peopleId,ddd,number,people{name, active}}}"}
       Field<ListGraphType<PhoneType>>("phones",
         arguments: new QueryArguments(
@@ -44,12 +45,11 @@ namespace WebAppiGraphql.GraphQL
         resolve: context =>
         {
           bool load = context.GetArgument<bool>("load");
-          IQueryable<Phone> query = DataContext.Phone.AsNoTracking();
-          if (load)
-          {
-            query = query.Include(x => x.People);
-          }
-          return query;
+          IQueryable<Phone> query = DataContext.Phone
+            .AsNoTracking();
+          return load
+            ? query.Include(x => x.People).AsQueryable()
+            : query;
         });
     }
 
@@ -65,12 +65,12 @@ namespace WebAppiGraphql.GraphQL
           {
             int id = context.GetArgument<int>("id");
             bool load = context.GetArgument<bool>("load");
-            IQueryable<People> query = DataContext.People.AsNoTracking();
-            if (load)
-            {
-              query = query.Include(x => x.Phones);
-            }
-            return query.FirstOrDefault(x => x.Id == id);
+            IQueryable<People> query = DataContext.People
+              .Where(x => x.Id == id)
+              .AsTracking();
+            return load
+              ? query.Include(x => x.Phones).FirstOrDefault()
+              : query.FirstOrDefault();
           });
 
       //{"query":"{people_filter_name(name:\"Name\",load:true){name,created,id,phones{ddd,number}}}"}
@@ -83,23 +83,27 @@ namespace WebAppiGraphql.GraphQL
           {
             var name = context.GetArgument<string>("name");
             bool load = context.GetArgument<bool>("load");
-            IQueryable<People> peoples = DataContext.People.Where(x => x.Name.Contains(name));
+            IQueryable<People> query = DataContext.People
+              .Where(x => x.Name.Contains(name))
+              .AsTracking();
             return load
-              ? peoples.Include(x => x.Phones).AsQueryable()
-              : peoples;
+              ? query.Include(x => x.Phones).AsQueryable()
+              : query;
           });
 
       //{"query":"{peoples(load:true) {id,name,created,updated,active,phones{peopleId,ddd,number}}}"}
       Field<ListGraphType<PeopleType>>("peoples",
           arguments: new QueryArguments(
-            new QueryArgument<BooleanGraphType> { Name = "load"}
+            new QueryArgument<BooleanGraphType> { Name = "load" }
             ),
           resolve: context =>
           {
             bool load = context.GetArgument<bool>("load");
+            IQueryable<People> query = DataContext.People
+              .AsTracking();
             return load
-              ? DataContext.People.Include(x => x.Phones).AsQueryable()
-              : DataContext.People;
+              ? query.Include(x => x.Phones).AsQueryable()
+              : query;
           });
     }
   }
